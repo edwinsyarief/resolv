@@ -5,6 +5,8 @@ import (
 	"log"
 	"math"
 	"sort"
+
+	ebimath "github.com/edwinsyarief/ebi-math"
 )
 
 // ConvexPolygon represents a series of points, connected by lines, constructing a convex shape.
@@ -12,10 +14,10 @@ import (
 type ConvexPolygon struct {
 	ShapeBase
 
-	scale    Vector
-	rotation float64  // How many radians the ConvexPolygon is rotated around in the viewing vector (Z).
-	Points   []Vector // Points represents the points constructing the ConvexPolygon.
-	Closed   bool     // Closed is whether the ConvexPolygon is closed or not; only takes effect if there are more than 2 points.
+	scale    ebimath.Vector
+	rotation float64          // How many radians the ConvexPolygon is rotated around in the viewing ebimath.Vector (Z).
+	Points   []ebimath.Vector // Points represents the points constructing the ConvexPolygon.
+	Closed   bool             // Closed is whether the ConvexPolygon is closed or not; only takes effect if there are more than 2 points.
 	bounds   Bounds
 }
 
@@ -24,13 +26,13 @@ type ConvexPolygon struct {
 // from X and Y of the first, to X and Y of the last.
 // For example: NewConvexPolygon(30, 20, 0, 0, 10, 0, 10, 10, 0, 10) would create a 10x10 convex
 // polygon square, with the vertices at {0,0}, {10,0}, {10, 10}, and {0, 10}, with the polygon itself occupying a position of 30, 20.
-// You can also pass the points using vectors with ConvexPolygon.AddPointsVec().
+// You can also pass the points using ebimath.Vectors with ConvexPolygon.AddPointsVec().
 func NewConvexPolygon(x, y float64, points []float64) *ConvexPolygon {
 
 	cp := &ConvexPolygon{
 		ShapeBase: newShapeBase(x, y),
-		scale:     NewVector(1, 1),
-		Points:    []Vector{},
+		scale:     ebimath.V(1, 1),
+		Points:    []ebimath.Vector{},
 		Closed:    true,
 	}
 
@@ -46,12 +48,12 @@ func NewConvexPolygon(x, y float64, points []float64) *ConvexPolygon {
 	return cp
 }
 
-func NewConvexPolygonVec(position Vector, points []Vector) *ConvexPolygon {
+func NewConvexPolygonVec(position ebimath.Vector, points []ebimath.Vector) *ConvexPolygon {
 
 	cp := &ConvexPolygon{
 		ShapeBase: newShapeBase(position.X, position.Y),
-		scale:     NewVector(1, 1),
-		Points:    []Vector{},
+		scale:     ebimath.V(1, 1),
+		Points:    []ebimath.Vector{},
 		Closed:    true,
 	}
 
@@ -68,7 +70,7 @@ func NewConvexPolygonVec(position Vector, points []Vector) *ConvexPolygon {
 // Clone returns a clone of the ConvexPolygon as an IShape.
 func (cp *ConvexPolygon) Clone() IShape {
 
-	points := append(make([]Vector, 0, len(cp.Points)), cp.Points...)
+	points := append(make([]ebimath.Vector, 0, len(cp.Points)), cp.Points...)
 
 	newPoly := NewConvexPolygonVec(cp.position, points)
 	newPoly.tags.Set(*cp.tags)
@@ -97,7 +99,7 @@ func (cp *ConvexPolygon) AddPoints(vertexPositions ...float64) error {
 		return errors.New("addpoints called with a non-even amount of vertex positions")
 	}
 	for v := 0; v < len(vertexPositions); v += 2 {
-		cp.Points = append(cp.Points, Vector{vertexPositions[v], vertexPositions[v+1]})
+		cp.Points = append(cp.Points, ebimath.V(vertexPositions[v], vertexPositions[v+1]))
 	}
 
 	// Call updateBounds first so that the bounds are updated to determine cellular location
@@ -106,8 +108,8 @@ func (cp *ConvexPolygon) AddPoints(vertexPositions ...float64) error {
 	return nil
 }
 
-// AddPointsVec allows you to add points to the ConvexPolygon with a slice of Vectors, each indicating a point / vertex.
-func (cp *ConvexPolygon) AddPointsVec(points ...Vector) {
+// AddPointsVec allows you to add points to the ConvexPolygon with a slice of ebimath.Vectors, each indicating a point / vertex.
+func (cp *ConvexPolygon) AddPointsVec(points ...ebimath.Vector) {
 	cp.Points = append(cp.Points, points...)
 	cp.updateBounds()
 	cp.update()
@@ -141,19 +143,19 @@ func (cp *ConvexPolygon) Lines() []collidingLine {
 }
 
 // Transformed returns the ConvexPolygon's points / vertices, transformed according to the ConvexPolygon's position.
-func (cp *ConvexPolygon) Transformed() []Vector {
-	transformed := []Vector{}
+func (cp *ConvexPolygon) Transformed() []ebimath.Vector {
+	transformed := []ebimath.Vector{}
 	for _, point := range cp.Points {
-		p := Vector{point.X * cp.scale.X, point.Y * cp.scale.Y}
+		p := ebimath.V(point.X*cp.scale.X, point.Y*cp.scale.Y)
 		if cp.rotation != 0 {
 			p = p.Rotate(-cp.rotation)
 		}
-		transformed = append(transformed, Vector{p.X + cp.position.X, p.Y + cp.position.Y})
+		transformed = append(transformed, ebimath.V(p.X+cp.position.X, p.Y+cp.position.Y))
 	}
 	return transformed
 }
 
-// Bounds returns two Vectors, comprising the top-left and bottom-right positions of the bounds of the
+// Bounds returns two ebimath.Vectors, comprising the top-left and bottom-right positions of the bounds of the
 // ConvexPolygon, post-transformation.
 func (cp *ConvexPolygon) Bounds() Bounds {
 	cp.bounds.space = cp.space
@@ -164,7 +166,7 @@ func (cp *ConvexPolygon) updateBounds() {
 
 	transformed := cp.Transformed()
 
-	topLeft := Vector{transformed[0].X, transformed[0].Y}
+	topLeft := ebimath.V(transformed[0].X, transformed[0].Y)
 	bottomRight := topLeft
 
 	for i := 0; i < len(transformed); i++ {
@@ -197,9 +199,9 @@ func (cp *ConvexPolygon) updateBounds() {
 }
 
 // Center returns the transformed Center of the ConvexPolygon.
-func (cp *ConvexPolygon) Center() Vector {
+func (cp *ConvexPolygon) Center() ebimath.Vector {
 
-	// pos := Vector{0, 0}
+	// pos := ebimath.Vector{0, 0}
 
 	// for _, v := range cp.Transformed() {
 	// 	pos = pos.Add(v)
@@ -215,7 +217,7 @@ func (cp *ConvexPolygon) Center() Vector {
 }
 
 // Project projects (i.e. flattens) the ConvexPolygon onto the provided axis.
-func (cp *ConvexPolygon) Project(axis Vector) Projection {
+func (cp *ConvexPolygon) Project(axis ebimath.Vector) Projection {
 	axis = axis.Unit()
 	vertices := cp.Transformed()
 	min := axis.Dot(vertices[0])
@@ -232,9 +234,9 @@ func (cp *ConvexPolygon) Project(axis Vector) Projection {
 }
 
 // SATAxes returns the axes of the ConvexPolygon for SAT intersection testing.
-func (cp *ConvexPolygon) SATAxes() []Vector {
+func (cp *ConvexPolygon) SATAxes() []ebimath.Vector {
 
-	axes := []Vector{}
+	axes := []ebimath.Vector{}
 	for _, line := range cp.Lines() {
 		axes = append(axes, line.Normal())
 	}
@@ -266,7 +268,7 @@ func (p *ConvexPolygon) Rotate(radians float64) {
 }
 
 // Scale returns the scale multipliers of the ConvexPolygon.
-func (p *ConvexPolygon) Scale() Vector {
+func (p *ConvexPolygon) Scale() ebimath.Vector {
 	return p.scale
 }
 
@@ -278,8 +280,8 @@ func (p *ConvexPolygon) SetScale(x, y float64) {
 	p.update()
 }
 
-// SetScaleVec sets the scale multipliers of the ConvexPolygon using the provided Vector.
-func (p *ConvexPolygon) SetScaleVec(vec Vector) {
+// SetScaleVec sets the scale multipliers of the ConvexPolygon using the provided ebimath.Vector.
+func (p *ConvexPolygon) SetScaleVec(vec ebimath.Vector) {
 	p.SetScale(vec.X, vec.Y)
 }
 
@@ -302,10 +304,10 @@ func (p *ConvexPolygon) Intersection(other IShape) IntersectionSet {
 // ShapeLineTestSettings is a struct of settings to be used when performing shape line tests
 // (the equivalent of 3D hitscan ray tests for 2D, but emitted from each vertex of the Shape).
 type ShapeLineTestSettings struct {
-	StartOffset Vector        // An offset to use for casting rays from each vertex of the Shape.
-	Vector      Vector        // The direction and distance vector to use for casting the lines.
-	TestAgainst ShapeIterator // The shapes to test against.
-	// OnIntersect is the callback to be called for each intersection between a line from the given Shape, ranging from its origin off towards the given Vector against each shape given in TestAgainst.
+	StartOffset ebimath.Vector // An offset to use for casting rays from each vertex of the Shape.
+	Vector      ebimath.Vector // The direction and distance ebimath.Vector to use for casting the lines.
+	TestAgainst ShapeIterator  // The shapes to test against.
+	// OnIntersect is the callback to be called for each intersection between a line from the given Shape, ranging from its origin off towards the given ebimath.Vector against each shape given in TestAgainst.
 	// set is the intersection set that contains information about the intersection, index is the index of the current intersection out of the max number of intersections,
 	// and count is the total number of intersections detected from the intersection test.
 	// The boolean the callback returns indicates whether the line test should continue iterating through results or stop at the currently found intersection.
@@ -315,7 +317,7 @@ type ShapeLineTestSettings struct {
 }
 
 var lineTestResults []IntersectionSet
-var lineTestVertices = newSet[Vector]()
+var lineTestVertices = newSet[ebimath.Vector]()
 
 // ShapeLineTest conducts a line test from each vertex of the ConvexPolygon using the settings passed.
 // By default, lines are cast from each vertex of each leading edge in the ConvexPolygon.
@@ -343,13 +345,13 @@ func (cp *ConvexPolygon) ShapeLineTest(settings ShapeLineTestSettings) bool {
 
 			if found {
 
-				// If a line's normal points away from the checking vector, it isn't a leading edge
+				// If a line's normal points away from the checking ebimath.Vector, it isn't a leading edge
 				if l.Normal().Dot(settings.Vector) < 0.01 {
 					continue
 				}
 
 				// Kick the vertices in along the lines a bit to ensure they don't get snagged up on borders
-				v := l.Vector().Scale(0.5).Invert()
+				v := l.Vector().ScaleF(0.5).Invert()
 				lineTestVertices.Add(l.Start.Sub(v))
 				lineTestVertices.Add(l.End.Sub(v.Invert()))
 
@@ -378,7 +380,7 @@ func (cp *ConvexPolygon) ShapeLineTest(settings ShapeLineTestSettings) bool {
 				for i := range lineTestResults {
 					if lineTestResults[i].OtherShape == set.OtherShape {
 						lineTestResults[i].Intersections = append(lineTestResults[i].Intersections, set.Intersections...)
-						if set.MTV.MagnitudeSquared() < lineTestResults[i].MTV.MagnitudeSquared() {
+						if set.MTV.LengthSquared() < lineTestResults[i].MTV.LengthSquared() {
 							lineTestResults[i].MTV = set.MTV
 						}
 						return true
@@ -396,7 +398,7 @@ func (cp *ConvexPolygon) ShapeLineTest(settings ShapeLineTestSettings) bool {
 
 	// Sort the results by smallest MTV because we can't really easily get the starting points of the ray test results
 	sort.Slice(lineTestResults, func(i, j int) bool {
-		return lineTestResults[i].MTV.MagnitudeSquared() < lineTestResults[j].MTV.MagnitudeSquared()
+		return lineTestResults[i].MTV.LengthSquared() < lineTestResults[j].MTV.LengthSquared()
 	})
 
 	if settings.OnIntersect != nil {
@@ -415,11 +417,11 @@ func (cp *ConvexPolygon) ShapeLineTest(settings ShapeLineTestSettings) bool {
 }
 
 // calculateMTV returns the MTV, if possible, and a bool indicating whether it was possible or not.
-func (cp *ConvexPolygon) calculateMTV(otherShape IShape) (Vector, bool) {
+func (cp *ConvexPolygon) calculateMTV(otherShape IShape) (ebimath.Vector, bool) {
 
-	delta := Vector{0, 0}
+	delta := ebimath.V2(0)
 
-	smallest := Vector{math.MaxFloat64, 0}
+	smallest := ebimath.V(math.MaxFloat64, 0)
 
 	switch other := otherShape.(type) {
 
@@ -432,11 +434,11 @@ func (cp *ConvexPolygon) calculateMTV(otherShape IShape) (Vector, bool) {
 			overlap := pa.Overlap(pb)
 
 			if overlap <= 0 {
-				return Vector{}, false
+				return ebimath.Vector{}, false
 			}
 
-			if smallest.Magnitude() > overlap {
-				smallest = axis.Scale(overlap)
+			if smallest.Length() > overlap {
+				smallest = axis.ScaleF(overlap)
 			}
 
 		}
@@ -449,35 +451,35 @@ func (cp *ConvexPolygon) calculateMTV(otherShape IShape) (Vector, bool) {
 			overlap := pa.Overlap(pb)
 
 			if overlap <= 0 {
-				return Vector{}, false
+				return ebimath.Vector{}, false
 			}
 
-			if smallest.Magnitude() > overlap {
-				smallest = axis.Scale(overlap)
+			if smallest.Length() > overlap {
+				smallest = axis.ScaleF(overlap)
 			}
 
 		}
 
-		// If the direction from target to source points opposite to the separation, invert the separation vector.
+		// If the direction from target to source points opposite to the separation, invert the separation ebimath.Vector.
 		if cp.Center().Sub(other.Center()).Dot(smallest) < 0 {
 			smallest = smallest.Invert()
 		}
 
 	case *Circle:
 
-		verts := append([]Vector{}, cp.Transformed()...)
+		verts := append([]ebimath.Vector{}, cp.Transformed()...)
 		center := other.position
-		sort.Slice(verts, func(i, j int) bool { return verts[i].Sub(center).Magnitude() < verts[j].Sub(center).Magnitude() })
+		sort.Slice(verts, func(i, j int) bool { return verts[i].Sub(center).Length() < verts[j].Sub(center).Length() })
 
-		axis := Vector{center.X - verts[0].X, center.Y - verts[0].Y}
+		axis := ebimath.V(center.X-verts[0].X, center.Y-verts[0].Y)
 
 		pa := cp.Project(axis)
 		pb := other.Project(axis)
 		overlap := pa.Overlap(pb)
 		if overlap <= 0 {
-			return Vector{}, false
+			return ebimath.Vector{}, false
 		}
-		smallest = axis.Unit().Scale(overlap)
+		smallest = axis.Unit().ScaleF(overlap)
 
 		for _, axis := range cp.SATAxes() {
 			pa := cp.Project(axis)
@@ -486,16 +488,16 @@ func (cp *ConvexPolygon) calculateMTV(otherShape IShape) (Vector, bool) {
 			overlap := pa.Overlap(pb)
 
 			if overlap <= 0 {
-				return Vector{}, false
+				return ebimath.Vector{}, false
 			}
 
-			if smallest.Magnitude() > overlap {
-				smallest = axis.Scale(overlap)
+			if smallest.Length() > overlap {
+				smallest = axis.ScaleF(overlap)
 			}
 
 		}
 
-		// If the direction from target to source points opposite to the separation, invert the separation vector
+		// If the direction from target to source points opposite to the separation, invert the separation ebimath.Vector
 		if cp.Center().Sub(other.position).Dot(smallest) < 0 {
 			smallest = smallest.Invert()
 		}
@@ -578,12 +580,12 @@ func (cp *ConvexPolygon) RecenterPoints() {
 		return
 	}
 
-	offset := Vector{0, 0}
+	offset := ebimath.V2(0)
 	for _, p := range cp.Points {
 		offset = offset.Add(p)
 	}
 
-	offset = offset.Scale(1.0 / float64(len(cp.Points))).Invert()
+	offset = offset.ScaleF(1.0 / float64(len(cp.Points))).Invert()
 
 	for i := range cp.Points {
 		cp.Points[i] = cp.Points[i].Add(offset)
@@ -600,7 +602,7 @@ func (cp *ConvexPolygon) RecenterPoints() {
 // ReverseVertexOrder reverses the vertex ordering of the ConvexPolygon.
 func (cp *ConvexPolygon) ReverseVertexOrder() {
 
-	verts := []Vector{cp.Points[0]}
+	verts := []ebimath.Vector{cp.Points[0]}
 
 	for i := len(cp.Points) - 1; i >= 1; i-- {
 		verts = append(verts, cp.Points[i])
@@ -688,31 +690,31 @@ func NewLine(x1, y1, x2, y2 float64) *ConvexPolygon {
 // A collidingLine is a helper shape used to determine if two ConvexPolygon lines intersect; you can't create a collidingLine to use as a Shape.
 // Instead, you can create a ConvexPolygon, specify two points, and set its Closed value to false (or use NewLine(), as this does it for you).
 type collidingLine struct {
-	Start, End Vector
+	Start, End ebimath.Vector
 }
 
 func newCollidingLine(x, y, x2, y2 float64) collidingLine {
 	return collidingLine{
-		Start: Vector{x, y},
-		End:   Vector{x2, y2},
+		Start: ebimath.V(x, y),
+		End:   ebimath.V(x2, y2),
 	}
 }
 
-func (line collidingLine) Project(axis Vector) Vector {
-	return line.Vector().Scale(axis.Dot(line.Start.Sub(line.End)))
+func (line collidingLine) Project(axis ebimath.Vector) ebimath.Vector {
+	return line.Vector().ScaleF(axis.Dot(line.Start.Sub(line.End)))
 }
 
-func (line collidingLine) Normal() Vector {
+func (line collidingLine) Normal() ebimath.Vector {
 	v := line.Vector()
-	return Vector{v.Y, -v.X}.Unit()
+	return ebimath.V(v.Y, -v.X).Unit()
 }
 
-func (line collidingLine) Vector() Vector {
+func (line collidingLine) Vector() ebimath.Vector {
 	return line.End.Sub(line.Start).Unit()
 }
 
-// IntersectionPointsLine returns the intersection point of a Line with another Line as a Vector, and if the intersection was found.
-func (line collidingLine) IntersectionPointsLine(other collidingLine) (Vector, bool) {
+// IntersectionPointsLine returns the intersection point of a Line with another Line as a ebimath.Vector, and if the intersection was found.
+func (line collidingLine) IntersectionPointsLine(other collidingLine) (ebimath.Vector, bool) {
 
 	det := (line.End.X-line.Start.X)*(other.End.Y-other.Start.Y) - (other.End.X-other.Start.X)*(line.End.Y-line.Start.Y)
 
@@ -734,19 +736,19 @@ func (line collidingLine) IntersectionPointsLine(other collidingLine) (Vector, b
 
 			// dx, dy := line.GetDelta()
 
-			return Vector{line.Start.X + (lambda * dx), line.Start.Y + (lambda * dy)}, true
+			return ebimath.V(line.Start.X+(lambda*dx), line.Start.Y+(lambda*dy)), true
 		}
 
 	}
 
-	return Vector{}, false
+	return ebimath.Vector{}, false
 
 }
 
-// IntersectionPointsCircle returns a slice of Vectors, each indicating the intersection point. If no intersection is found, it will return an empty slice.
-func (line collidingLine) IntersectionPointsCircle(circle *Circle) []Vector {
+// IntersectionPointsCircle returns a slice of ebimath.Vectors, each indicating the intersection point. If no intersection is found, it will return an empty slice.
+func (line collidingLine) IntersectionPointsCircle(circle *Circle) []ebimath.Vector {
 
-	points := []Vector{}
+	points := []ebimath.Vector{}
 
 	cp := circle.position
 	lStart := line.Start.Sub(cp)
@@ -766,7 +768,7 @@ func (line collidingLine) IntersectionPointsCircle(circle *Circle) []Vector {
 		t := -b / (2 * a)
 
 		if t >= 0 && t <= 1 {
-			points = append(points, Vector{line.Start.X + t*diff.X, line.Start.Y + t*diff.Y})
+			points = append(points, ebimath.V(line.Start.X+t*diff.X, line.Start.Y+t*diff.Y))
 		}
 
 	} else {
@@ -775,11 +777,11 @@ func (line collidingLine) IntersectionPointsCircle(circle *Circle) []Vector {
 
 		// We have to ensure t is between 0 and 1; otherwise, the collision points are on the circle as though the lines were infinite in length.
 		if t >= 0 && t <= 1 {
-			points = append(points, Vector{line.Start.X + t*diff.X, line.Start.Y + t*diff.Y})
+			points = append(points, ebimath.V(line.Start.X+t*diff.X, line.Start.Y+t*diff.Y))
 		}
 		t = (-b - math.Sqrt(det)) / (2 * a)
 		if t >= 0 && t <= 1 {
-			points = append(points, Vector{line.Start.X + t*diff.X, line.Start.Y + t*diff.Y})
+			points = append(points, ebimath.V(line.Start.X+t*diff.X, line.Start.Y+t*diff.Y))
 		}
 
 	}

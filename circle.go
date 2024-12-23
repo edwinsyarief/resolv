@@ -1,5 +1,7 @@
 package resolv
 
+import ebimath "github.com/edwinsyarief/ebi-math"
+
 // Circle represents a circle (naturally), and is essentially a point with a radius.
 type Circle struct {
 	ShapeBase
@@ -32,16 +34,16 @@ func (c *Circle) Clone() IShape {
 // Bounds returns the top-left and bottom-right corners of the Circle.
 func (c *Circle) Bounds() Bounds {
 	return Bounds{
-		Min:   Vector{c.position.X - c.radius, c.position.Y - c.radius},
-		Max:   Vector{c.position.X + c.radius, c.position.Y + c.radius},
+		Min:   ebimath.V(c.position.X-c.radius, c.position.Y-c.radius),
+		Max:   ebimath.V(c.position.X+c.radius, c.position.Y+c.radius),
 		space: c.space,
 	}
 }
 
-func (c *Circle) Project(axis Vector) Projection {
+func (c *Circle) Project(axis ebimath.Vector) Projection {
 	axis = axis.Unit()
 	projectedCenter := axis.Dot(c.position)
-	projectedRadius := axis.Magnitude() * c.radius
+	projectedRadius := axis.Length() * c.radius
 
 	min := projectedCenter - projectedRadius
 	max := projectedCenter + projectedRadius

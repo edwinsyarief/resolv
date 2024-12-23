@@ -2,20 +2,22 @@ package resolv
 
 import (
 	"math"
+
+	ebimath "github.com/edwinsyarief/ebi-math"
 )
 
 // Intersection represents a single point of contact against a line or surface.
 type Intersection struct {
-	Point  Vector // The point of contact.
-	Normal Vector // The normal of the surface contacted.
+	Point  ebimath.Vector // The point of contact.
+	Normal ebimath.Vector // The normal of the surface contacted.
 }
 
 // IntersectionSet represents a set of intersections between the calling object and one other intersecting Shape.
 // A Shape's intersection test may iterate through multiple IntersectionSets - one for each pair of intersecting objects.
 type IntersectionSet struct {
 	Intersections []Intersection // Slice of points indicating contact between the two Shapes.
-	Center        Vector         // Center of the Contact set; this is the average of all Points contained within all contacts in the IntersectionSet.
-	MTV           Vector         // Minimum Translation Vector; this is the vector to move a Shape on to move it to contact with the other, intersecting / contacting Shape.
+	Center        ebimath.Vector // Center of the Contact set; this is the average of all Points contained within all contacts in the IntersectionSet.
+	MTV           ebimath.Vector // Minimum Translation ebimath.Vector; this is the ebimath.Vector to move a Shape on to move it to contact with the other, intersecting / contacting Shape.
 	OtherShape    IShape         // The other shape involved in the contact.
 }
 
@@ -24,10 +26,10 @@ func newIntersectionSet() IntersectionSet {
 }
 
 // LeftmostPoint returns the left-most point out of the IntersectionSet's Points slice.
-// If the IntersectionSet is empty, this returns a zero Vector.
-func (is IntersectionSet) LeftmostPoint() Vector {
+// If the IntersectionSet is empty, this returns a zero ebimath.Vector.
+func (is IntersectionSet) LeftmostPoint() ebimath.Vector {
 
-	var left Vector
+	var left ebimath.Vector
 	set := false
 
 	for _, contact := range is.Intersections {
@@ -44,10 +46,10 @@ func (is IntersectionSet) LeftmostPoint() Vector {
 }
 
 // RightmostPoint returns the right-most point out of the IntersectionSet's Points slice.
-// If the IntersectionSet is empty, this returns a zero Vector.
-func (is IntersectionSet) RightmostPoint() Vector {
+// If the IntersectionSet is empty, this returns a zero ebimath.Vector.
+func (is IntersectionSet) RightmostPoint() ebimath.Vector {
 
-	var right Vector
+	var right ebimath.Vector
 	set := false
 
 	for _, contact := range is.Intersections {
@@ -64,10 +66,10 @@ func (is IntersectionSet) RightmostPoint() Vector {
 }
 
 // TopmostPoint returns the top-most point out of the IntersectionSet's Points slice. I
-// f the IntersectionSet is empty, this returns a zero Vector.
-func (is IntersectionSet) TopmostPoint() Vector {
+// f the IntersectionSet is empty, this returns a zero ebimath.Vector.
+func (is IntersectionSet) TopmostPoint() ebimath.Vector {
 
-	var top Vector
+	var top ebimath.Vector
 	set := false
 
 	for _, contact := range is.Intersections {
@@ -84,10 +86,10 @@ func (is IntersectionSet) TopmostPoint() Vector {
 }
 
 // BottommostPoint returns the bottom-most point out of the IntersectionSet's Points slice.
-// If the IntersectionSet is empty, this returns a zero Vector.
-func (is IntersectionSet) BottommostPoint() Vector {
+// If the IntersectionSet is empty, this returns a zero ebimath.Vector.
+func (is IntersectionSet) BottommostPoint() ebimath.Vector {
 
-	var bottom Vector
+	var bottom ebimath.Vector
 	set := false
 
 	for _, contact := range is.Intersections {
@@ -109,7 +111,7 @@ func (is IntersectionSet) IsEmpty() bool {
 }
 
 // Distance returns the distance between all of the intersection points when projected against an axis.
-func (is IntersectionSet) Distance(alongAxis Vector) float64 {
+func (is IntersectionSet) Distance(alongAxis ebimath.Vector) float64 {
 	alongAxis = alongAxis.Unit()
 	top, bottom := math.MaxFloat64, -math.MaxFloat64
 	for _, c := range is.Intersections {

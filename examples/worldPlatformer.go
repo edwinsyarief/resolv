@@ -84,7 +84,7 @@ func (w *WorldPlatformer) Init() {
 
 	// Clone and move the Ramp, then place it again
 	r := ramp.Clone()
-	r.SetPositionVec(resolv.NewVector(240, 344))
+	r.SetPositionVec(resolv.Newebimath.Vector(240, 344))
 	w.space.Add(r)
 
 	w.MovingPlatform = resolv.NewRectangleFromTopLeft(550, 200, 32, 8)
@@ -131,8 +131,8 @@ func (w *WorldPlatformer) Space() *resolv.Space {
 
 type PlatformingPlayer struct {
 	Object   *resolv.ConvexPolygon
-	Movement resolv.Vector
-	Facing   resolv.Vector
+	Movement resolv.ebimath.Vector
+	Facing   resolv.ebimath.Vector
 	YSpeed   float64
 	Space    *resolv.Space
 
@@ -154,7 +154,7 @@ func NewPlayer(space *resolv.Space) *PlatformingPlayer {
 
 func (p *PlatformingPlayer) Update() {
 
-	moveVec := resolv.Vector{}
+	moveVec := resolv.ebimath.Vector{}
 	gravity := 0.5
 	friction := 0.2
 	accel := 0.5 + friction
@@ -211,7 +211,7 @@ func (p *PlatformingPlayer) Update() {
 
 	p.OnGround = false
 
-	checkVec := resolv.NewVector(0, p.YSpeed) // Check downwards by the distance of movement speed
+	checkVec := resolv.Newebimath.Vector(0, p.YSpeed) // Check downwards by the distance of movement speed
 
 	if p.YSpeed >= 0 {
 		checkVec.Y += 4 // Add in a bit of extra downwards cast to account for running down ramps if we're not jumping
@@ -219,7 +219,7 @@ func (p *PlatformingPlayer) Update() {
 
 	// Snap to ground using a shape-based line test.
 	p.Object.ShapeLineTest(resolv.ShapeLineTestSettings{
-		Vector:      checkVec,
+		ebimath.Vector:      checkVec,
 		TestAgainst: nearbyShapes.ByTags(TagPlatform), // Select the shapes near the player object that are platforms
 		OnIntersect: func(set resolv.IntersectionSet, index, max int) bool {
 
@@ -289,7 +289,7 @@ func (p *PlatformingPlayer) Update() {
 
 	// We can also use an IntersectionTest / ShapeLineTest / LineTest function as a bool if we don't need to do anything special on any particular "one"
 	if !p.Object.ShapeLineTest(resolv.ShapeLineTestSettings{
-		Vector:      p.Facing,
+		ebimath.Vector:      p.Facing,
 		TestAgainst: nearbyShapes.ByTags(TagSolidWall),
 	}) {
 		p.WallSliding = false

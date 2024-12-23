@@ -112,7 +112,7 @@ If you want to see more info, feel free to examine the examples in the `examples
 
 - [x] Rewrite to be significantly easier and simpler
 - [ ] Allow for cells that are less than 1 unit large (and so Spaces can have cell sizes of, say, 0.1 units)
-- [x] Custom Vector struct for speed, consistency, and to reduce third-party imports
+- [x] Custom ebimath.Vector struct for speed, consistency, and to reduce third-party imports
     - [ ] Implement Matrices as well for parenting?
 - [ ] Intersection MTV works properly for external normals, but not internal normals of a polygon
 - [ ] Properly implement moving around inside a circle (?)

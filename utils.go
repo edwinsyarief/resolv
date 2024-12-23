@@ -1,178 +1,10 @@
 package resolv
 
 import (
-	"math"
 	"sort"
+
+	ebimath "github.com/edwinsyarief/ebi-math"
 )
-
-// ToDegrees is a helper function to easily convert radians to degrees for human readability.
-func ToDegrees(radians float64) float64 {
-	return radians / math.Pi * 180
-}
-
-// ToRadians is a helper function to easily convert degrees to radians (which is what the rotation-oriented functions in Tetra3D use).
-func ToRadians(degrees float64) float64 {
-	return math.Pi * degrees / 180
-}
-
-func min(a, b float64) float64 {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func max(a, b float64) float64 {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-func clamp(value, min, max float64) float64 {
-	if value < min {
-		return min
-	} else if value > max {
-		return max
-	}
-	return value
-}
-
-// func pow(value float64, power int) float64 {
-// 	x := value
-// 	for i := 0; i < power; i++ {
-// 		x += x
-// 	}
-// 	return x
-// }
-
-func round(value float64) float64 {
-
-	iv := float64(int(value))
-
-	if value > iv+0.5 {
-		return iv + 1
-	} else if value < iv-0.5 {
-		return iv - 1
-	}
-
-	return iv
-
-}
-
-// Projection represents the projection of a shape (usually a ConvexPolygon) onto an axis for intersection testing.
-// Normally, you wouldn't need to get this information, but it could be useful in some circumstances, I'm sure.
-type Projection struct {
-	Min, Max float64
-}
-
-// IsOverlapping returns whether a Projection is overlapping with the other, provided Projection. Credit to https://www.sevenson.com.au/programming/sat/
-func (projection Projection) IsOverlapping(other Projection) bool {
-	return projection.Overlap(other) > 0
-}
-
-// Overlap returns the amount that a Projection is overlapping with the other, provided Projection. Credit to https://dyn4j.org/2010/01/sat/#sat-nointer
-func (projection Projection) Overlap(other Projection) float64 {
-	return math.Min(projection.Max-other.Min, other.Max-projection.Min)
-}
-
-// IsInside returns whether the Projection is wholly inside of the other, provided Projection.
-func (projection Projection) IsInside(other Projection) bool {
-	return projection.Min >= other.Min && projection.Max <= other.Max
-}
-
-// Bounds represents the minimum and maximum bounds of a Shape.
-type Bounds struct {
-	Min, Max Vector
-	space    *Space
-}
-
-func (b Bounds) toCellSpace() (int, int, int, int) {
-
-	minX := int(math.Floor(b.Min.X / float64(b.space.cellWidth)))
-	minY := int(math.Floor(b.Min.Y / float64(b.space.cellHeight)))
-	maxX := int(math.Floor(b.Max.X / float64(b.space.cellWidth)))
-	maxY := int(math.Floor(b.Max.Y / float64(b.space.cellHeight)))
-
-	return minX, minY, maxX, maxY
-}
-
-// Center returns the center position of the Bounds.
-func (b Bounds) Center() Vector {
-	return b.Min.Add(b.Max.Sub(b.Min).Scale(0.5))
-}
-
-// Width returns the width of the Bounds.
-func (b Bounds) Width() float64 {
-	return b.Max.X - b.Min.X
-}
-
-// Height returns the height of the bounds.
-func (b Bounds) Height() float64 {
-	return b.Max.Y - b.Min.Y
-}
-
-// MaxAxis returns the maximum value out of either the Bounds's width or height.
-func (b Bounds) MaxAxis() float64 {
-	if b.Width() > b.Height() {
-		return b.Width()
-	}
-	return b.Height()
-}
-
-// MinAxis returns the minimum value out of either the Bounds's width or height.
-func (b Bounds) MinAxis() float64 {
-	if b.Width() > b.Height() {
-		return b.Height()
-	}
-	return b.Width()
-}
-
-// Move moves the Bounds, such that the center point is offset by {x, y}.
-func (b Bounds) Move(x, y float64) Bounds {
-	b.Min.X += x
-	b.Min.Y += y
-	b.Max.X += x
-	b.Max.Y += y
-	return b
-}
-
-// MoveVec moves the Bounds by the vector provided, such that the center point is offset by {x, y}.
-func (b *Bounds) MoveVec(vec Vector) Bounds {
-	return b.Move(vec.X, vec.Y)
-}
-
-// IsIntersecting returns if the Bounds is intersecting with the given other Bounds.
-func (b Bounds) IsIntersecting(other Bounds) bool {
-	bounds := b.Intersection(other)
-	return !bounds.IsEmpty()
-}
-
-// Intersection returns the intersection between the two Bounds objects.
-func (b Bounds) Intersection(other Bounds) Bounds {
-
-	overlap := Bounds{}
-
-	if other.Max.X < b.Min.X || other.Min.X > b.Max.X || other.Max.Y < b.Min.Y || other.Min.Y > b.Max.Y {
-		return overlap
-	}
-
-	overlap.Max.X = math.Min(other.Max.X, b.Max.X)
-	overlap.Min.X = math.Max(other.Min.X, b.Min.X)
-
-	overlap.Max.Y = math.Min(other.Max.Y, b.Max.Y)
-	overlap.Min.Y = math.Max(other.Min.Y, b.Min.Y)
-
-	return overlap
-
-}
-
-// IsEmpty returns true if the Bounds's minimum and maximum corners are 0.
-func (b Bounds) IsEmpty() bool {
-	return b.Max.X-b.Min.X == 0 && b.Max.Y-b.Min.X == 0
-}
-
-/////
 
 // Set represents a Set of elements.
 type Set[E comparable] map[E]struct{}
@@ -254,13 +86,11 @@ func (s shapeIDSet) idInSet(id uint32) bool {
 
 var cellSelectionForEachIDSet = shapeIDSet{}
 
-/////
-
 // LineTestSettings is a struct of settings to be used when performing line tests (the equivalent of 3D hitscan ray tests for 2D)
 type LineTestSettings struct {
-	Start       Vector        // The start of the line to test shapes against
-	End         Vector        // The end of the line to test chapes against
-	TestAgainst ShapeIterator // The collection of shapes to test against
+	Start       ebimath.Vector // The start of the line to test shapes against
+	End         ebimath.Vector // The end of the line to test chapes against
+	TestAgainst ShapeIterator  // The collection of shapes to test against
 	// The callback to be called for each intersection between the given line, ranging from start to end, and each shape given in TestAgainst.
 	// set is the intersection set that contains information about the intersection, index is the index of the current index
 	// and count is the total number of intersections detected from the intersection test.
@@ -277,7 +107,7 @@ func LineTest(settings LineTestSettings) bool {
 
 	castMargin := 0.01 // Basically, the line cast starts are a smidge back so that moving to contact doesn't make future line casts fail
 	vu := settings.End.Sub(settings.Start).Unit()
-	start := settings.Start.Sub(vu.Scale(castMargin))
+	start := settings.Start.Sub(vu.ScaleF(castMargin))
 
 	line := newCollidingLine(start.X, start.Y, settings.End.X, settings.End.Y)
 
@@ -338,10 +168,10 @@ func LineTest(settings LineTestSettings) bool {
 
 			// Sort the points by distance to line start
 			sort.Slice(contactSet.Intersections, func(i, j int) bool {
-				return contactSet.Intersections[i].Point.DistanceSquared(settings.Start) < contactSet.Intersections[j].Point.DistanceSquared(settings.Start)
+				return contactSet.Intersections[i].Point.DistanceSquaredTo(settings.Start) < contactSet.Intersections[j].Point.DistanceSquaredTo(settings.Start)
 			})
 
-			contactSet.MTV = contactSet.Intersections[0].Point.Sub(settings.Start).Sub(vu.Scale(castMargin))
+			contactSet.MTV = contactSet.Intersections[0].Point.Sub(settings.Start).Sub(vu.ScaleF(castMargin))
 
 			intersectionSets = append(intersectionSets, contactSet)
 
@@ -353,7 +183,7 @@ func LineTest(settings LineTestSettings) bool {
 
 	// Sort intersection sets by distance from closest hit to line start
 	sort.Slice(intersectionSets, func(i, j int) bool {
-		return intersectionSets[i].Intersections[0].Point.DistanceSquared(line.Start) < intersectionSets[j].Intersections[0].Point.DistanceSquared(line.Start)
+		return intersectionSets[i].Intersections[0].Point.DistanceSquaredTo(line.Start) < intersectionSets[j].Intersections[0].Point.DistanceSquaredTo(line.Start)
 	})
 
 	// Loop through all intersections and iterate through them

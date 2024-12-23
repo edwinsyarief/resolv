@@ -79,7 +79,7 @@ func (w *WorldBouncer) Update() {
 		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight) {
 			x, y := ebiten.CursorPosition()
 			for i := len(w.Bouncers) - 1; i >= 0; i-- {
-				if w.Bouncers[i].Object.Position().Distance(resolv.NewVector(float64(x), float64(y))) < 64 {
+				if w.Bouncers[i].Object.Position().Distance(resolv.Newebimath.Vector(float64(x), float64(y))) < 64 {
 					w.space.Remove(w.Bouncers[i].Object)
 					w.Bouncers[i] = nil
 					w.Bouncers = append(w.Bouncers[:i], w.Bouncers[i+1:]...)
@@ -116,7 +116,7 @@ func (w *WorldBouncer) Space() *resolv.Space {
 
 type Bouncer struct {
 	Object   *resolv.Circle
-	Movement resolv.Vector
+	Movement resolv.ebimath.Vector
 
 	ColorChange float64
 }
@@ -125,7 +125,7 @@ func NewBouncer(x, y float64, world *WorldBouncer) *Bouncer {
 
 	bouncer := &Bouncer{
 		Object:   resolv.NewCircle(x, y, 8),
-		Movement: resolv.NewVector(rand.Float64()*2-1, 0),
+		Movement: resolv.Newebimath.Vector(rand.Float64()*2-1, 0),
 	}
 
 	bouncer.Object.Tags().Set(TagBouncer)
@@ -148,7 +148,7 @@ func (b *Bouncer) Update() {
 
 	b.ColorChange *= 0.98
 
-	totalMTV := resolv.NewVector(0, 0)
+	totalMTV := resolv.Newebimath.Vector(0, 0)
 
 	b.Object.IntersectionTest(resolv.IntersectionTestSettings{
 

@@ -69,7 +69,7 @@ func (w *WorldCircle) Space() *resolv.Space {
 
 type Circle struct {
 	Object   *resolv.Circle
-	Movement resolv.Vector
+	Movement resolv.ebimath.Vector
 }
 
 func NewCircle(world *WorldCircle) *Circle {
@@ -87,7 +87,7 @@ func NewCircle(world *WorldCircle) *Circle {
 
 func (c *Circle) Update() {
 
-	movement := resolv.NewVectorZero()
+	movement := resolv.Newebimath.VectorZero()
 	maxSpd := 4.0
 	friction := 0.5
 	accel := 0.5 + friction

@@ -3,6 +3,8 @@ package resolv
 import (
 	"math"
 	"sort"
+
+	ebimath "github.com/edwinsyarief/ebi-math"
 )
 
 // IShape represents an interface that all Shapes fulfill.
@@ -11,12 +13,12 @@ type IShape interface {
 	Clone() IShape
 	Tags() *Tags
 
-	Position() Vector
+	Position() ebimath.Vector
 	SetPosition(x, y float64)
-	SetPositionVec(vec Vector)
+	SetPositionVec(vec ebimath.Vector)
 
 	Move(x, y float64)
-	MoveVec(vec Vector)
+	MoveVec(vec ebimath.Vector)
 
 	SetX(float64)
 	SetY(float64)
@@ -44,7 +46,7 @@ type IShape interface {
 	IsIntersecting(other IShape) bool
 	Intersection(other IShape) IntersectionSet
 
-	VecTo(other IShape) Vector
+	VecTo(other IShape) ebimath.Vector
 	DistanceTo(other IShape) float64
 	DistanceSquaredTo(other IShape) float64
 }
@@ -52,7 +54,7 @@ type IShape interface {
 // ShapeBase implements many of the common methods that Shapes need to implement to fulfill IShape
 // (but not the Shape-specific ones, like rotating for ConvexPolygons or setting the radius for Circles).
 type ShapeBase struct {
-	position      Vector
+	position      ebimath.Vector
 	space         *Space
 	touchingCells []*Cell
 	tags          *Tags
@@ -68,7 +70,7 @@ func newShapeBase(x, y float64) ShapeBase {
 	id := globalShapeID
 	globalShapeID++
 	return ShapeBase{
-		position: NewVector(x, y),
+		position: ebimath.V(x, y),
 		tags:     &t,
 		id:       id,
 	}
@@ -101,13 +103,13 @@ func (s *ShapeBase) Move(x, y float64) {
 	s.update()
 }
 
-// MoveVec translates the ShapeBase by the designated Vector.
-func (s *ShapeBase) MoveVec(vec Vector) {
+// MoveVec translates the ShapeBase by the designated ebimath.Vector.
+func (s *ShapeBase) MoveVec(vec ebimath.Vector) {
 	s.Move(vec.X, vec.Y)
 }
 
 // Position() returns the X and Y position of the ShapeBase.
-func (s *ShapeBase) Position() Vector {
+func (s *ShapeBase) Position() ebimath.Vector {
 	return s.position
 }
 
@@ -118,8 +120,8 @@ func (s *ShapeBase) SetPosition(x, y float64) {
 	s.update()
 }
 
-// SetPosition sets the center position of the ShapeBase using the Vector given.
-func (c *ShapeBase) SetPositionVec(vec Vector) {
+// SetPosition sets the center position of the ShapeBase using the ebimath.Vector given.
+func (c *ShapeBase) SetPositionVec(vec ebimath.Vector) {
 	c.SetPosition(vec.X, vec.Y)
 }
 
@@ -165,19 +167,19 @@ func (s *ShapeBase) IsBelow(other IShape) bool {
 	return s.owner.Bounds().Max.Y > other.Bounds().Max.Y
 }
 
-// VecTo returns a vector from the given shape to the other Shape.
-func (s *ShapeBase) VecTo(other IShape) Vector {
+// VecTo returns a ebimath.Vector from the given shape to the other Shape.
+func (s *ShapeBase) VecTo(other IShape) ebimath.Vector {
 	return s.position.Sub(other.Position())
 }
 
 // DistanceSquaredTo returns the distance from the given shape's center to the other Shape.
 func (s *ShapeBase) DistanceTo(other IShape) float64 {
-	return s.owner.Position().Distance(other.Position())
+	return s.owner.Position().DistanceTo(other.Position())
 }
 
 // DistanceSquaredTo returns the squared distance from the given shape's center to the other Shape.
 func (s *ShapeBase) DistanceSquaredTo(other IShape) float64 {
-	return s.owner.Position().DistanceSquared(other.Position())
+	return s.owner.Position().DistanceSquaredTo(other.Position())
 }
 
 func (s *ShapeBase) removeFromTouchingCells() {
@@ -383,7 +385,7 @@ func convexCircleTest(convex *ConvexPolygon, circle *Circle) IntersectionSet {
 		intersectionSet.OtherShape = circle
 
 		sort.Slice(intersectionSet.Intersections, func(i, j int) bool {
-			return intersectionSet.Intersections[i].Point.DistanceSquared(circle.position) < intersectionSet.Intersections[j].Point.DistanceSquared(circle.position)
+			return intersectionSet.Intersections[i].Point.DistanceSquaredTo(circle.position) < intersectionSet.Intersections[j].Point.DistanceSquaredTo(circle.position)
 		})
 
 		if mtv, ok := convex.calculateMTV(circle); ok {
@@ -417,17 +419,17 @@ func circleCircleTest(circleA, circleB *Circle) IntersectionSet {
 	y2 := circleA.position.Y + a*(circleB.position.Y-circleA.position.Y)/d
 
 	intersectionSet.Intersections = []Intersection{
-		{Point: Vector{x2 + h*(circleB.position.Y-circleA.position.Y)/d, y2 - h*(circleB.position.X-circleA.position.X)/d}},
-		{Point: Vector{x2 - h*(circleB.position.Y-circleA.position.Y)/d, y2 + h*(circleB.position.X-circleA.position.X)/d}},
+		{Point: ebimath.V(x2+h*(circleB.position.Y-circleA.position.Y)/d, y2-h*(circleB.position.X-circleA.position.X)/d)},
+		{Point: ebimath.V(x2-h*(circleB.position.Y-circleA.position.Y)/d, y2+h*(circleB.position.X-circleA.position.X)/d)},
 	}
 
 	for i := range intersectionSet.Intersections {
 		intersectionSet.Intersections[i].Normal = intersectionSet.Intersections[i].Point.Sub(circleA.position).Unit()
 	}
 
-	intersectionSet.MTV = Vector{circleA.position.X - circleB.position.X, circleA.position.Y - circleB.position.Y}
-	dist := intersectionSet.MTV.Magnitude()
-	intersectionSet.MTV = intersectionSet.MTV.Unit().Scale(circleA.radius + circleB.radius - dist)
+	intersectionSet.MTV = ebimath.V(circleA.position.X-circleB.position.X, circleA.position.Y-circleB.position.Y)
+	dist := intersectionSet.MTV.Length()
+	intersectionSet.MTV = intersectionSet.MTV.Unit().ScaleF(circleA.radius + circleB.radius - dist)
 
 	intersectionSet.OtherShape = circleB
 
@@ -465,7 +467,7 @@ func convexConvexTest(convexA, convexB *ConvexPolygon) IntersectionSet {
 		center := convexA.Center()
 
 		sort.Slice(intersectionSet.Intersections, func(i, j int) bool {
-			return intersectionSet.Intersections[i].Point.DistanceSquared(center) < intersectionSet.Intersections[j].Point.DistanceSquared(center)
+			return intersectionSet.Intersections[i].Point.DistanceSquaredTo(center) < intersectionSet.Intersections[j].Point.DistanceSquaredTo(center)
 		})
 
 		if mtv, ok := convexA.calculateMTV(convexB); ok {

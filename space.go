@@ -194,7 +194,7 @@ func (s *Space) FilterCells(bounds Bounds) CellSelection {
 
 }
 
-// func (s *Space) FilterCellsInLine(start, end Vector) CellSelection {
+// func (s *Space) FilterCellsInLine(start, end ebimath.Vector) CellSelection {
 
 // 	cells := CellSelection{}
 
@@ -209,14 +209,14 @@ func (s *Space) FilterCells(bounds Bounds) CellSelection {
 
 // 	if cell != nil && endCell != nil {
 
-// 		dv := Vector{float64(endX - startX), float64(endY - startY)}.Unit()
+// 		dv := ebimath.Vector{float64(endX - startX), float64(endY - startY)}.Unit()
 // 		dv.X *= float64(s.CellWidth / 2)
 // 		dv.Y *= float64(s.CellHeight / 2)
 
 // 		pX := float64(startX * s.CellWidth)
 // 		pY := float64(startY * s.CellHeight)
 
-// 		p := Vector{pX + float64(s.CellWidth/2), pY + float64(s.CellHeight/2)}
+// 		p := ebimath.Vector{pX + float64(s.CellWidth/2), pY + float64(s.CellHeight/2)}
 
 // 		alternate := false
 

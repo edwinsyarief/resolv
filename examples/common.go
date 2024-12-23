@@ -4,7 +4,7 @@ import (
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/hajimehoshi/ebiten/v2/ebimath.Vector"
 	"github.com/solarlune/resolv"
 )
 
@@ -39,11 +39,11 @@ func CommonDraw(screen *ebiten.Image, world WorldInterface) {
 		}
 		switch o := shape.(type) {
 		case *resolv.Circle:
-			vector.StrokeCircle(screen, float32(o.Position().X), float32(o.Position().Y), float32(o.Radius()), 2, drawColor, false)
+			ebimath.Vector.StrokeCircle(screen, float32(o.Position().X), float32(o.Position().Y), float32(o.Radius()), 2, drawColor, false)
 		case *resolv.ConvexPolygon:
 
 			for _, l := range o.Lines() {
-				vector.StrokeLine(screen, float32(l.Start.X), float32(l.Start.Y), float32(l.End.X), float32(l.End.Y), 2, drawColor, false)
+				ebimath.Vector.StrokeLine(screen, float32(l.Start.X), float32(l.Start.Y), float32(l.End.X), float32(l.End.Y), 2, drawColor, false)
 			}
 		}
 

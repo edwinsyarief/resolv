@@ -14,7 +14,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/hajimehoshi/ebiten/v2/ebimath.Vector"
 	"github.com/solarlune/resolv"
 	"golang.org/x/image/font/gofont/goregular"
 )
@@ -173,7 +173,7 @@ func (g *Game) DrawText(screen *ebiten.Image, x, y int, textLines ...string) {
 	metrics := g.FontFace.Metrics()
 	for _, txt := range textLines {
 		w, h := text.Measure(txt, g.FontFace, 16)
-		vector.DrawFilledRect(screen, float32(x+2), float32(y), float32(w), float32(h), color.RGBA{0, 0, 0, 192}, false)
+		ebimath.Vector.DrawFilledRect(screen, float32(x+2), float32(y), float32(w), float32(h), color.RGBA{0, 0, 0, 192}, false)
 
 		opt := text.DrawOptions{}
 		opt.GeoM.Translate(float64(x+2), float64(y+2-int(metrics.VDescent)-4))
@@ -205,13 +205,13 @@ func (g *Game) DebugDraw(screen *ebiten.Image, space *resolv.Space) {
 				drawColor = color.RGBA{255, 255, 0, 255}
 			}
 
-			vector.StrokeRect(screen, cx, cy, cx+cw, cy, 2, drawColor, false)
+			ebimath.Vector.StrokeRect(screen, cx, cy, cx+cw, cy, 2, drawColor, false)
 
-			vector.StrokeRect(screen, cx+cw, cy, cx+cw, cy+ch, 2, drawColor, false)
+			ebimath.Vector.StrokeRect(screen, cx+cw, cy, cx+cw, cy+ch, 2, drawColor, false)
 
-			vector.StrokeRect(screen, cx+cw, cy+ch, cx, cy+ch, 2, drawColor, false)
+			ebimath.Vector.StrokeRect(screen, cx+cw, cy+ch, cx, cy+ch, 2, drawColor, false)
 
-			vector.StrokeRect(screen, cx, cy+ch, cx, cy, 2, drawColor, false)
+			ebimath.Vector.StrokeRect(screen, cx, cy+ch, cx, cy, 2, drawColor, false)
 		}
 
 	}

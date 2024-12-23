@@ -3,6 +3,8 @@ package resolv
 import (
 	"reflect"
 	"sort"
+
+	ebimath "github.com/edwinsyarief/ebi-math"
 )
 
 // ShapeIterator is an interface that defines a method to iterate through Shapes.
@@ -61,11 +63,11 @@ func (s ShapeFilter) NotByTags(tags Tags) ShapeFilter {
 }
 
 // ByDistance adds a filter to the ShapeFilter that filters out Shapes distance to a given point.
-// The shapes have to be at least min and at most max distance from the given point Vector.
+// The shapes have to be at least min and at most max distance from the given point ebimath.Vector.
 // The function returns the ShapeFiler for easy method chaining.
-func (s ShapeFilter) ByDistance(point Vector, min, max float64) ShapeFilter {
+func (s ShapeFilter) ByDistance(point ebimath.Vector, min, max float64) ShapeFilter {
 	s.Filters = append(s.Filters, func(s IShape) bool {
-		d := s.Position().Distance(point)
+		d := s.Position().DistanceTo(point)
 		return d > min && d < max
 	})
 	return s
@@ -201,8 +203,8 @@ func (s ShapeCollection) UnsetTags(tags Tags) {
 }
 
 // SortByDistance sorts the ShapeCollection by distance to the given point.
-func (s ShapeCollection) SortByDistance(point Vector) {
+func (s ShapeCollection) SortByDistance(point ebimath.Vector) {
 	sort.Slice(s, func(i, j int) bool {
-		return s[i].Position().DistanceSquared(point) < s[j].Position().DistanceSquared(point)
+		return s[i].Position().DistanceSquaredTo(point) < s[j].Position().DistanceSquaredTo(point)
 	})
 }
