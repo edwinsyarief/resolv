@@ -3,9 +3,9 @@ package main
 import (
 	"image/color"
 
+	ebimath "github.com/edwinsyarief/ebi-math"
+	"github.com/edwinsyarief/resolv"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebimath.Vector"
-	"github.com/solarlune/resolv"
 )
 
 type WorldInterface interface {

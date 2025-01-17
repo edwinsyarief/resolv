@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/solarlune/resolv"
+	"github.com/edwinsyarief/resolv"
 )
 
 var (

@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
-	"github.com/solarlune/resolv"
+	"github.com/edwinsyarief/resolv"
 )
 
 var (

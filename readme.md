@@ -5,7 +5,7 @@
 
 # Resolv v0.8.0
 
-[pkg.go.dev](https://pkg.go.dev/github.com/solarlune/resolv)
+[pkg.go.dev](https://pkg.go.dev/github.com/edwinsyarief/resolv)
 
 ## What is Resolv?
 
@@ -33,7 +33,7 @@ Resolv has no external dependencies. It requires Go 1.20 or above.
 
 ## How do I get it?
 
-`go get github.com/solarlune/resolv`
+`go get github.com/edwinsyarief/resolv`
 
 ## How do I use it?
 
@@ -106,7 +106,7 @@ ___
 
 If you want to see more info, feel free to examine the examples in the `examples` folder; the platformer example is particularly in-depth when it comes to movement and collision response. You can run them and switch between them just by calling `go run .` from the examples folder and pressing Q or E to switch between the example worlds.
 
-[You can check out the documentation here, as well.](https://pkg.go.dev/github.com/solarlune/resolv)
+[You can check out the documentation here, as well.](https://pkg.go.dev/github.com/edwinsyarief/resolv)
 
 ## To-do List
 

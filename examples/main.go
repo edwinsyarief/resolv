@@ -11,11 +11,11 @@ import (
 	"strconv"
 	"time"
 
+	ebimath "github.com/edwinsyarief/ebi-math"
+	"github.com/edwinsyarief/resolv"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebimath.Vector"
-	"github.com/solarlune/resolv"
 	"golang.org/x/image/font/gofont/goregular"
 )
 
